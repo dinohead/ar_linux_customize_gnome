@@ -1,0 +1,337 @@
+---
+
+- name: SHELL | Get user's group
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  shell: "/usr/bin/id -gn"
+  register: command_result
+  changed_when: false
+
+- set_fact:
+    linux_customize_gnome_group: "{{ command_result.stdout_lines[0] }}"
+
+- name: SHELL | Get user's home
+  become: true
+  become_user: root
+  shell: "/usr/bin/getent passwd {{ linux_customize_gnome_user }} | cut -d: -f6"
+  register: command_result
+  changed_when: false
+
+- set_fact:
+    linux_customize_gnome_home: "{{ command_result.stdout_lines[0] }}"
+
+- name: SHELL | Get gnome-shell version
+  shell: "/usr/bin/gnome-shell --version"
+  register: command_result
+  changed_when: false
+
+  # This will return output in the form of "GNOME Shell 3.XX.X"
+  # The next step will extract the 3.XX portion and assign it to a variable
+
+- set_fact:
+    linux_customize_gnome_version: "{{ command_result.stdout_lines[0].split(' ')[2].split('.')[:2] | join('-') }}"
+
+  # Odd numbers of GNOME shell are alpha/beta releases of the next higher even number
+  # This will increment odd versions to even versions since dash-2-dock is only released for even versions
+
+- set_fact:
+    linux_customize_gnome_release: >-
+      {%- if (linux_customize_gnome_version.split('-')[1] | int ) % 2 != 0 -%}
+      {{ linux_customize_gnome_version.split('-')[0] + '-' + ( ( ( linux_customize_gnome_version.split('-')[1] | int ) + 1 ) |string ) }}
+      {%- else -%}
+      {{ linux_customize_gnome_version }}
+      {%- endif %}
+
+  # Finally, we'll look up the url based on the release version of GNOME that was discovered
+
+- set_fact:
+    linux_customize_gnome_url: "{{ ( linux_customize_gnome_src | selectattr('version', 'equalto', linux_customize_gnome_release ) | list )[0]['url'] }}"
+
+- name: APT | Install Gnome-Tweaks (Debian)
+  become: true
+  become_user: root
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  apt:
+    name: gnome-tweaks
+    state: latest
+    update_cache: true
+  when: ansible_os_family ==  'Debian'
+
+- name: YUM | Install Gnome-Tweaks (RedHat)
+  become: true
+  become_user: root
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  yum:
+    name: gnome-tweak-tool
+    state: latest
+    update_cache: true
+  when: ansible_os_family ==  'RedHat'
+
+- name: LINEINFILE | Set defualt session to Gnome 3
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  lineinfile:
+    create: true
+    path: '{{ linux_customize_gnome_home }}/.Xclients'
+    line: gnome-session
+    owner: "{{ linux_customize_gnome_user }}"
+    group: "{{ linux_customize_gnome_group }}"
+    mode: 'u=rwx,g=rx,o=rx'
+  when: ansible_os_family ==  'RedHat'
+
+- name: LINEINFILE | set global dark theme
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  lineinfile:
+    create: true
+    path: '{{ linux_customize_gnome_home }}/.config/gtk-3.0/settings.ini'
+    line: "gtk-application-prefer-dark-theme=1"
+    regexp: '^gtk-application-prefer-dark-theme'
+    owner: "{{ linux_customize_gnome_user }}"
+    group: "{{ linux_customize_gnome_group }}"
+    mode: 'u=rw,g=rw,o=r'
+
+- name: LINEINFILE | Add root as bookmark
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  lineinfile:
+    create: true
+    path: '{{ linux_customize_gnome_home }}/.config/gtk-3.0/bookmarks'
+    line: "file:///"
+    state: present
+    owner: "{{ linux_customize_gnome_user }}"
+    group: "{{ linux_customize_gnome_group }}"
+    mode: 'u=rw,g=rw,o=r'
+
+- name: FILE | Ensure directory for Gnome 3 Dash-to-dock exists
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  file:
+    path: '{{ linux_customize_gnome_home }}/.local/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com'
+    state: directory
+    owner: "{{ linux_customize_gnome_user }}"
+    group: "{{ linux_customize_gnome_group }}"
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: UNARCHIVE | Install Gnome 3 Dash-to-dock
+  become: true
+  become_user: root
+  unarchive:
+    remote_src: true
+    src: "{{ linux_customize_gnome_url }}"
+    dest: '{{ linux_customize_gnome_home }}/.local/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com'
+    owner: "{{ linux_customize_gnome_user }}"
+    group: "{{ linux_customize_gnome_group }}"
+
+- name: COMMAND | Enable Gnome 3 Dash-to-dock
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.shell enabled-extensions "['dash-to-dock@micxgx.gmail.com']"
+
+- name: COMMAND | Apply custom theme to Dash-to-dock
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/apply-custom-theme true
+
+- name: COMMAND | Do not hide the dock
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/dock-fixed true
+
+- name: COMMAND | Do not hide the dock
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/require-pressure-to-show false
+
+- name: COMMAND | Extend heighth of dock from top to bottom
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/extend-height true
+
+- name: COMMAND | Change dock icon size to 32
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/dash-max-icon-size 32
+
+- name: COMMAND | Disable dock intellihide
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gnome/shell/extensions/dash-to-dock/intellihide-mode "'FOCUS_APPLICATION_WINDOWS'"
+
+- name: COMMAND | Disable Screen Lock
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.screensaver lock-enabled false
+
+- name: COMMAND | Allow icons on the Desktop
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.background show-desktop-icons true
+
+- name: COMMAND | Hide Trash on Desktop
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.desktop trash-icon-visible false
+
+- name: COMMAND | Show date on Top Bar
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.interface clock-show-date true
+
+- name: COMMAND | Disable Desktop Animations
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.interface enable-animations false
+
+- name: COMMAND | Set Gnome Theme to Adwaita-dark
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
+
+- name: COMMAND | Set Gnome Icon Theme to Ubuntu-momo-dark
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.interface icon-theme ubuntu-mono-dark
+  when: ansible_distribution ==  'Ubuntu'
+
+- name: COMMAND | Do not report techincal problems
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.privacy report-technical-problems false
+
+- name: COMMAND | Add minimize and maximize buttons to window
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.wm.preferences button-layout appmenu:minimize,maximize,close
+
+- name: COMMAND | Set favorites
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'intellij-idea-ultimate_intellij-idea-ultimate.desktop', 'webstorm_webstorm.desktop', 'pycharm-professional_pycharm-professional.desktop', 'org.gnome.gedit.desktop', 'google-chrome.desktop', 'firefox.desktop', 'gnome-control-center.desktop', 'org.gnome.tweaks.desktop', 'libreoffice-calc.desktop', 'libreoffice-writer.desktop', 'slack_slack.desktop', 'chrome-gbchcmhmhahfdphkhkmpfmihenigjmpp-Default.desktop', 'org.gnome.Screenshot.desktop']"
+
+- name: COMMAND | Set Gedit file browser mode to tree-view
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.gedit.plugins.filebrowser tree-view true
+
+- name: COMMAND | Use list view in file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.preferences default-folder-viewer list-view
+
+- name: COMMAND | Use expandable folders in file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.list-view use-tree-view true
+
+- name: COMMAND | Show hidden files in file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gtk/settings/file-chooser/show-hidden true
+
+- name: COMMAND | Show directories first in the file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   dconf write /org/gtk/settings/file-chooser/sort-directories-first true
+
+- name: COMMAND | Add owner, group, and permissions columns to file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.list-view default-visible-columns "['name', 'size', 'owner', 'group', 'permissions', 'date_modified']"
+
+- name: COMMAND | Use small icons in the file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.list-view default-zoom-level small
+
+- name: COMMAND | Enable Delete in file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.preferences show-delete-permanently true
+
+- name: COMMAND | Show create link option in file browser
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.preferences show-create-link true
+
+- name: COMMAND | Hide the home icon on the Desktop
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.desktop home-icon-visible false
+
+- name: COMMAND | Hide connected volumes on the Desktop
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.nautilus.desktop volumes-visible false
+
+- name: COMMAND | Add line numbers to gedit
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.gedit.preferences.editor display-line-numbers true
+
+- name: COMMAND | Turn off screen timeout
+  become: true
+  become_user: "{{ linux_customize_gnome_user }}"
+  command: |
+   dbus-launch
+   gsettings set org.gnome.desktop.session idle-delay 'uint32 0'
