@@ -83,14 +83,6 @@ SOFTWARE.
 
 ### Testing
 
-### Contributing
-
-1. Fork it
-1. Create your feature branch (`git checkout -b my-new-feature`)
-1. Commit your changes (`git commit -am 'Add some feature'`)
-1. Push to the branch (`git push origin my-new-feature`)
-1. Create new Pull Request
-
 ### Git SCM
 Please refer to the .gitignore file and update accordingly depending on your
 development environment, etc.  The particular file was generated at 
