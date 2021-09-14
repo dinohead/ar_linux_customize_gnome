@@ -61,8 +61,8 @@
 - name: YUM | Install Gnome-Tweaks (RedHat)
   become: true
   become_user: root
-  vars:
-    ansible_python_interpreter: /usr/bin/python
+#  vars:
+#    ansible_python_interpreter: /usr/bin/python
   yum:
     name: gnome-tweak-tool
     state: latest
@@ -188,12 +188,12 @@
    dbus-launch
    gsettings set org.gnome.desktop.background show-desktop-icons true
 
-- name: COMMAND | Hide Trash on Desktop
-  become: true
-  become_user: "{{ linux_customize_gnome_user }}"
-  command: |
-   dbus-launch
-   gsettings set org.gnome.nautilus.desktop trash-icon-visible false
+#- name: COMMAND | Hide Trash on Desktop
+#  become: true
+#  become_user: "{{ linux_customize_gnome_user }}"
+#  command: |
+#   dbus-launch
+#   gsettings set org.gnome.nautilus.desktop trash-icon-visible false
 
 - name: COMMAND | Show date on Top Bar
   become: true
@@ -308,19 +308,19 @@
    dbus-launch
    gsettings set org.gnome.nautilus.preferences show-create-link true
 
-- name: COMMAND | Hide the home icon on the Desktop
-  become: true
-  become_user: "{{ linux_customize_gnome_user }}"
-  command: |
-   dbus-launch
-   gsettings set org.gnome.nautilus.desktop home-icon-visible false
+#- name: COMMAND | Hide the home icon on the Desktop
+#  become: true
+#  become_user: "{{ linux_customize_gnome_user }}"
+#  command: |
+#   dbus-launch
+#   gsettings set org.gnome.nautilus.desktop home-icon-visible false
 
-- name: COMMAND | Hide connected volumes on the Desktop
-  become: true
-  become_user: "{{ linux_customize_gnome_user }}"
-  command: |
-   dbus-launch
-   gsettings set org.gnome.nautilus.desktop volumes-visible false
+#- name: COMMAND | Hide connected volumes on the Desktop
+#  become: true
+#  become_user: "{{ linux_customize_gnome_user }}"
+#  command: |
+#   dbus-launch
+#   gsettings set org.gnome.nautilus.desktop volumes-visible false
 
 - name: COMMAND | Add line numbers to gedit
   become: true

@@ -4,30 +4,40 @@ linux_customize_gnome_user: "{{ ansible_user_id }}"
 
 linux_customize_gnome_src:
   - version: 3-2
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v7.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/1427.shell-extension.zip
   - version: 3-4
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v16.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/2051.shell-extension.zip
   - version: 3-6
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v19.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/2404.shell-extension.zip
   - version: 3-8
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v22.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/3236.shell-extension.zip
   - version: 3-10
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v30.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/3840.shell-extension.zip
   - version: 3-12
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v41.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/4745.shell-extension.zip
   - version: 3-14
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v51.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/5573.shell-extension.zip
   - version: 3-16
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v52.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/5574.shell-extension.zip
   - version: 3-18
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
   - version: 3-20
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
   - version: 3-22
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
   - version: 3-24
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
   - version: 3-26
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
   - version: 3-28
-    url: https://extensions.gnome.org/extension-data/dash-to-dock%40micxgx.gmail.com.v63.shell-extension.zip
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
+  - version: 3-30
+    url: https://extensions.gnome.org/review/download/9189.shell-extension.zip
+  - version: 3-32
+    url: https://extensions.gnome.org/review/download/9456.shell-extension.zip
+  - version: 3-34
+    url: https://extensions.gnome.org/review/download/12397.shell-extension.zip
+  - version: 3-36
+    url: https://extensions.gnome.org/review/download/19642.shell-extension.zip
+  - version: 3-38
+    url: https://extensions.gnome.org/review/download/19642.shell-extension.zip
