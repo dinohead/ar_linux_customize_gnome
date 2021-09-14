@@ -58,16 +58,31 @@
     update_cache: true
   when: ansible_os_family ==  'Debian'
 
-- name: YUM | Install Gnome-Tweaks (RedHat)
+- name: YUM | Install Gnome-Tweaks (RedHat 7)
   become: true
   become_user: root
-#  vars:
-#    ansible_python_interpreter: /usr/bin/python
+  vars:
+    ansible_python_interpreter: /usr/bin/python
   yum:
     name: gnome-tweak-tool
     state: latest
     update_cache: true
-  when: ansible_os_family ==  'RedHat'
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  when: 
+    - "ansible_distribution_major_version | int <= 7"
+    - ansible_os_family ==  'RedHat'
+
+- name: YUM | Install Gnome-Tweaks (RedHat 8)
+  become: true
+  become_user: root
+  yum:
+    name: gnome-tweak-tool
+    state: latest
+    update_cache: true
+  when: 
+    - "ansible_distribution_major_version | int > 7"
+    - ansible_os_family ==  'RedHat'
 
 - name: LINEINFILE | Set defualt session to Gnome 3
   become: true

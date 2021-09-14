@@ -4,6 +4,7 @@ See [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
 |Version|Codename|Date|Notes|
 |:---:|:---:|:---:|---|
+|0.1.7|Venkman|2021-09-14|Updating for RHEL 7 and 8 compatability|
 |0.1.6|Venkman|2021-09-13|Updating default binary urls and removed desktop options|
 |0.1.4|Venkman|2019-01-07|Github Release|
 |0.1.3|Venkman|2018-10-08|Fixed permissions bug|
