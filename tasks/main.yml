@@ -61,8 +61,6 @@
 - name: YUM | Install Gnome-Tweaks (RedHat 7)
   become: true
   become_user: root
-  vars:
-    ansible_python_interpreter: /usr/bin/python
   yum:
     name: gnome-tweak-tool
     state: latest
